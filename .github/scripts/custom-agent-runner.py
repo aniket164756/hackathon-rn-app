@@ -3,11 +3,12 @@
 custom-agent-runner.py
 
 Runs the RN PR Review agent against a GitHub Pull Request using the
-GitHub Models API and posts the structured review as a PR comment.
+OpenAI API and posts the structured review as a PR comment.
 
 Required env vars:
-  GITHUB_TOKEN       - Auto-provided by GitHub Actions (needs pull-requests: write, contents: read)
-  GH_MODELS_TOKEN    - Fine-grained PAT with `models: read` scope (stored as repo secret)
+  GITHUB_TOKEN       - Automatically provided by GitHub Actions
+                       (needs pull-requests: write, contents: read)
+  OPENAI_API_KEY     - OpenAI API key (stored as repo secret)
   GITHUB_REPOSITORY  - e.g. "owner/repo" (auto-set by Actions)
   PR_NUMBER          - Pull request number (from github.event.pull_request.number)
 """
@@ -21,12 +22,11 @@ from openai import OpenAI
 # ── Config ────────────────────────────────────────────────────────────────────
 
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
-GH_MODELS_TOKEN = os.environ["GH_MODELS_TOKEN"]
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 GITHUB_REPOSITORY = os.environ["GITHUB_REPOSITORY"]
 PR_NUMBER = int(os.environ["PR_NUMBER"])
 
 GITHUB_API = "https://api.github.com"
-MODELS_ENDPOINT = "https://models.inference.ai.azure.com"
 MODEL = "gpt-4o"
 
 HEADERS = {
@@ -156,8 +156,8 @@ def main():
     system_prompt = build_system_prompt()
     user_message = build_user_message(changed_files, owner, repo, head_sha)
 
-    # GH_MODELS_TOKEN is a Fine-grained PAT with `models: read` scope
-    client = OpenAI(base_url=MODELS_ENDPOINT, api_key=GH_MODELS_TOKEN)
+    # OPENAI_API_KEY stored as a GitHub Actions secret
+    client = OpenAI(api_key=OPENAI_API_KEY)
 
     print(f"Reviewing {len(changed_files)} file(s) via {MODEL}...")
     completion = client.chat.completions.create(

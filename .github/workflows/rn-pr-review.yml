@@ -28,7 +28,7 @@ jobs:
       - name: Run RN PR Review agent
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: python .github/scripts/custom-agent-runner.py
