@@ -83,4 +83,6 @@ Output two sections in order:
 
 2. **Merge Recommendation** — one of `HOLD`, `MERGE WITH FIXES`, or `APPROVE` followed by one sentence rationale.
 
+3. **Detailed Findings** — Step 1, 2, 3 output each in a collapsible `<details>` block.
+
 
