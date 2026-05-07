@@ -3,7 +3,7 @@ import { Text, TouchableOpacity } from 'react-native';
 import styles from './IBL-Button.style';
 
 interface IProps {
-  buttonText: string;
+  buttonText: any;
   onPress: () => void;
 }
 
