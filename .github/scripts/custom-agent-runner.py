@@ -15,6 +15,7 @@ Required env vars:
 
 import os
 import sys
+import re
 import base64
 import requests
 from openai import OpenAI
@@ -195,6 +196,9 @@ def main():
         )
 
     review = completion.choices[0].message.content
+    # Ensure blank lines between blocks so GitHub Markdown renders properly.
+    # Replace any single newline that is not already preceded/followed by another newline.
+    review = re.sub(r'(?<!\n)\n(?!\n)', '\n\n', review)
     delete_previous_review_comment(owner, repo, PR_NUMBER)
     gh_post_comment(owner, repo, PR_NUMBER, f"## 🤖 RN PR Review\n\n{review}")
 
