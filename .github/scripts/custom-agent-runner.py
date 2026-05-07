@@ -15,6 +15,7 @@ Required env vars:
 
 import os
 import sys
+import re
 import base64
 import requests
 from openai import OpenAI
@@ -148,7 +149,12 @@ def build_system_prompt():
 
 
 def build_user_message(changed_files, owner, repo, head_sha):
-    lines = [f"Review the following {len(changed_files)} changed file(s):\n"]
+    lines = [
+        "**Formatting rule**: Your entire response must use GitHub Flavored Markdown. "
+        "Separate every heading, paragraph, list item, and table with a blank line (two newlines). "
+        "Never place two different content blocks on adjacent lines without a blank line between them.\n",
+        f"Review the following {len(changed_files)} changed file(s):\n",
+    ]
     for f in changed_files:
         path = f["filename"]
         content = get_file_content(owner, repo, path, head_sha)
@@ -190,6 +196,9 @@ def main():
         )
 
     review = completion.choices[0].message.content
+    # Ensure blank lines between blocks so GitHub Markdown renders properly.
+    # Replace any single newline that is not already preceded/followed by another newline.
+    review = re.sub(r'(?<!\n)\n(?!\n)', '\n\n', review)
     delete_previous_review_comment(owner, repo, PR_NUMBER)
     gh_post_comment(owner, repo, PR_NUMBER, f"## 🤖 RN PR Review\n\n{review}")
 
