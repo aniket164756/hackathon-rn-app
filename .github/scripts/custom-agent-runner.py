@@ -29,6 +29,10 @@ MODELS_ENDPOINT = "https://models.inference.ai.azure.com"
 MODEL = "gpt-4o"
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
+print(f"[config] repository={GITHUB_REPOSITORY} pr={PR_NUMBER} model={MODEL}")
+print(f"[config] OPENAI_API_KEY present={bool(OPENAI_API_KEY)}")
+print(f"[config] GITHUB_TOKEN present={bool(GITHUB_TOKEN)}")
+
 HEADERS = {
     "Authorization": f"Bearer {GITHUB_TOKEN}",
     "Accept": "application/vnd.github+json",
@@ -44,32 +48,43 @@ SOURCE_EXTENSIONS = {".ts", ".tsx", ".js", ".jsx"}
 # ── GitHub API helpers ────────────────────────────────────────────────────────
 
 def gh_get(path, params=None):
-    response = requests.get(f"{GITHUB_API}{path}", headers=HEADERS, params=params)
+    url = f"{GITHUB_API}{path}"
+    print(f"[github] GET {url} params={params}")
+    response = requests.get(url, headers=HEADERS, params=params)
+    print(f"[github] response status={response.status_code}")
     response.raise_for_status()
     return response.json()
 
 
 def gh_post_comment(owner, repo, pr_number, body):
+    print(f"[github] posting PR comment to {owner}/{repo}#{pr_number}")
     response = requests.post(
         f"{GITHUB_API}/repos/{owner}/{repo}/issues/{pr_number}/comments",
         headers=HEADERS,
         json={"body": body},
     )
+    print(f"[github] comment post status={response.status_code}")
     response.raise_for_status()
 
 
 def get_pr_changed_files(owner, repo, pr_number):
     """Return non-removed source files changed in the PR."""
+    print(f"[github] fetching changed files for PR #{pr_number}")
     files = gh_get(f"/repos/{owner}/{repo}/pulls/{pr_number}/files")
-    return [
+    filtered = [
         f for f in files
         if f["status"] != "removed"
         and any(f["filename"].endswith(ext) for ext in SOURCE_EXTENSIONS)
     ]
+    print(f"[github] total files in PR={len(files)}, source files to review={len(filtered)}")
+    for f in filtered:
+        print(f"  - {f['filename']} ({f['status']})")
+    return filtered
 
 
 def get_file_content(owner, repo, path, ref):
     """Fetch file content at a specific ref via GitHub Contents API."""
+    print(f"[github] fetching content: {path} @ {ref[:7]}")
     try:
         data = gh_get(
             f"/repos/{owner}/{repo}/contents/{path}",
@@ -78,10 +93,12 @@ def get_file_content(owner, repo, path, ref):
         if data.get("encoding") == "base64":
             content = base64.b64decode(data["content"]).decode("utf-8", errors="replace")
             if len(content) > MAX_FILE_CHARS:
+                print(f"[github] truncating {path}: {len(content)} -> {MAX_FILE_CHARS} chars")
                 content = content[:MAX_FILE_CHARS] + f"\n... [truncated at {MAX_FILE_CHARS} chars]"
+            print(f"[github] fetched {path}: {len(content)} chars")
             return content
-    except requests.HTTPError:
-        pass
+    except requests.HTTPError as e:
+        print(f"[github] ERROR fetching {path}: {e}")
     return None
 
 # ── Prompt builders ───────────────────────────────────────────────────────────
@@ -114,7 +131,11 @@ def build_system_prompt():
         or read_local("eslint.config.js")
         or ""
     )
-
+    print(f"[prompt] agent_md={len(agent_md)} chars, file_structure={len(file_structure)} chars, rn_quality={len(rn_quality)} chars, eslintrc={len(eslintrc)} chars")
+    if not agent_md:
+        print("[prompt] WARNING: .github/agents/rn-pr-review.agent.md not found")
+    if not rn_quality:
+        print("[prompt] WARNING: .github/instructions/rn-code-quality.instructions.md not found")
     return "\n\n---\n\n".join(filter(bool, [
         strip_frontmatter(agent_md),
         f"## File Structure Conventions\n{strip_frontmatter(file_structure)}",
@@ -138,10 +159,13 @@ def build_user_message(changed_files, owner, repo, head_sha):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
+    print("[main] starting RN PR Review agent")
     owner, repo = GITHUB_REPOSITORY.split("/", 1)
+    print(f"[main] owner={owner} repo={repo}")
 
     pr = gh_get(f"/repos/{owner}/{repo}/pulls/{PR_NUMBER}")
     head_sha = pr["head"]["sha"]
+    print(f"[main] PR head sha={head_sha}")
 
     changed_files = get_pr_changed_files(owner, repo, PR_NUMBER)
 
@@ -158,11 +182,13 @@ def main():
 
     # Prefer explicit OpenAI credentials when provided; otherwise use GitHub Models.
     if OPENAI_API_KEY:
+        print("[main] using OpenAI API")
         client = OpenAI(api_key=OPENAI_API_KEY)
     else:
+        print("[main] OPENAI_API_KEY not set — falling back to GitHub Models endpoint")
         client = OpenAI(base_url=MODELS_ENDPOINT, api_key=GITHUB_TOKEN)
 
-    print(f"Reviewing {len(changed_files)} file(s) via {MODEL}...")
+    print(f"[main] sending request to model={MODEL}...")
     try:
         completion = client.chat.completions.create(
             model=MODEL,
@@ -184,12 +210,14 @@ def main():
         raise
 
     review = completion.choices[0].message.content
+    print(f"[main] received review: {len(review)} chars")
     gh_post_comment(owner, repo, PR_NUMBER, f"## 🤖 RN PR Review\n\n{review}")
-    print("Review posted successfully.")
+    print("[main] review posted successfully")
 
 
 if __name__ == "__main__":
     try:
         main()
-    except KeyboardInterrupt:
+    except Exception as exc:
+        print(f"[error] {type(exc).__name__}: {exc}", file=sys.stderr)
         sys.exit(1)
