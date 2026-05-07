@@ -69,6 +69,20 @@ def gh_post_comment(owner, repo, pr_number, body):
     response.raise_for_status()
 
 
+def delete_previous_review_comment(owner, repo, pr_number):
+    """Delete any existing RN PR Review comment posted by the Actions bot."""
+    comments = gh_get(f"/repos/{owner}/{repo}/issues/{pr_number}/comments")
+    for comment in comments:
+        if (
+            comment.get("user", {}).get("login") == "github-actions[bot]"
+            and comment.get("body", "").startswith("## 🤖 RN PR Review")
+        ):
+            requests.delete(
+                f"{GITHUB_API}/repos/{owner}/{repo}/issues/comments/{comment['id']}",
+                headers=HEADERS,
+            ).raise_for_status()
+
+
 def get_pr_changed_files(owner, repo, pr_number):
     """Return non-removed source files changed in the PR."""
     files = gh_get(f"/repos/{owner}/{repo}/pulls/{pr_number}/files")
@@ -176,6 +190,7 @@ def main():
         )
 
     review = completion.choices[0].message.content
+    delete_previous_review_comment(owner, repo, PR_NUMBER)
     gh_post_comment(owner, repo, PR_NUMBER, f"## 🤖 RN PR Review\n\n{review}")
 
 
