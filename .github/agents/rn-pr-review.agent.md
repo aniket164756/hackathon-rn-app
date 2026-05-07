@@ -76,11 +76,17 @@ List each issue as: **file**, **line range**, **category**, **description**, **s
 
 **Goal**: Give the reviewer a single-screen decision dashboard.
 
-**IMPORTANT**: Your entire response must contain ONLY this Summary. Do not include pillar details, code snippets, or suggestions on how to fix findings.
+**IMPORTANT**: Your entire response must contain ONLY this Summary. Do not include pillar details, code snippets, suggestions on how to fix findings, or any tables.
 
 Output two sections in order:
 
-1. **Overall Risk Level** — GFM table with columns `Category` and `Count`. Rows: `🔴 High`, `🟡 Medium`, `🟢 Low`, `Lint Violations`, `Coverage Gaps`, `**Overall Risk**`. Risk logic: any 🔴 → Overall 🔴; two or more 🟡 with no 🔴 → Overall 🟡; otherwise 🟢.
+1. **Overall Risk Level** — a labelled list using this exact format:
+   - 🔴 High: `<count>`
+   - 🟡 Medium: `<count>`
+   - 🟢 Low: `<count>`
+   - Lint Violations: `<count>`
+   - Coverage Gaps: `<count>`
+   - **Overall Risk**: 🔴 / 🟡 / 🟢 (any 🔴 → Overall 🔴; two or more 🟡 with no 🔴 → Overall 🟡; otherwise 🟢)
 
 2. **Merge Recommendation** — one of `HOLD`, `MERGE WITH FIXES`, or `APPROVE` followed by one sentence rationale.
 
