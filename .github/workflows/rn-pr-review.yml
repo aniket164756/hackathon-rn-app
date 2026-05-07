@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   rn-pr-review:
-    name: RN PR Review Agent
+    name: PR Review Agent
     runs-on: ubuntu-latest
     environment: prod
 

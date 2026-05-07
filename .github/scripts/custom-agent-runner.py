@@ -26,7 +26,7 @@ GITHUB_REPOSITORY = os.environ["GITHUB_REPOSITORY"]
 PR_NUMBER = int(os.environ["PR_NUMBER"])
 
 GITHUB_API = "https://api.github.com"
-MODEL = "gpt-4o"
+MODEL = "gpt-5-mini"
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 if not OPENAI_API_KEY:
