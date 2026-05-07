@@ -166,25 +166,14 @@ def main():
     user_message = build_user_message(changed_files, owner, repo, head_sha)
 
     client = OpenAI(api_key=OPENAI_API_KEY)
-    try:
-        completion = client.chat.completions.create(
+    completion = client.chat.completions.create(
             model=MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message},
             ],
-            temperature=0.2,
             max_completion_tokens=4096,
         )
-    except Exception as exc:
-        message = str(exc)
-        if "models permission is required" in message.lower():
-            raise RuntimeError(
-                "GitHub Models request failed: token is missing `models` permission. "
-                "Add `permissions: models: read` to the workflow, or set OPENAI_API_KEY "
-                "to use OpenAI directly."
-            ) from exc
-        raise
 
     review = completion.choices[0].message.content
     gh_post_comment(owner, repo, PR_NUMBER, f"## 🤖 RN PR Review\n\n{review}")
