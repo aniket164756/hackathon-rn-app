@@ -148,7 +148,12 @@ def build_system_prompt():
 
 
 def build_user_message(changed_files, owner, repo, head_sha):
-    lines = [f"Review the following {len(changed_files)} changed file(s):\n"]
+    lines = [
+        "**Output rule**: Respond with ONLY the Step 4 Summary section. "
+        "Do not include pillar details, inline findings, code snippets, or fix suggestions. "
+        "Use proper GitHub Flavored Markdown with a blank line between every heading, paragraph, and table.\n",
+        f"Review the following {len(changed_files)} changed file(s):\n",
+    ]
     for f in changed_files:
         path = f["filename"]
         content = get_file_content(owner, repo, path, head_sha)
