@@ -1,4 +1,4 @@
-name: RN PR Review
+name: PR Review Agent
 
 on:
   pull_request:
