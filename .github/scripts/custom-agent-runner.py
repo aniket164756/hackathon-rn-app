@@ -150,9 +150,9 @@ def build_system_prompt():
 
 def build_user_message(changed_files, owner, repo, head_sha):
     lines = [
-        "**Formatting rule**: Your entire response must use GitHub Flavored Markdown. "
-        "Separate every heading, paragraph, list item, and table with a blank line (two newlines). "
-        "Never place two different content blocks on adjacent lines without a blank line between them.\n",
+        "**Output rule**: Respond with ONLY the Step 4 Summary section. "
+        "Do not include pillar details, inline findings, code snippets, or fix suggestions. "
+        "Use proper GitHub Flavored Markdown with a blank line between every heading, paragraph, and table.\n",
         f"Review the following {len(changed_files)} changed file(s):\n",
     ]
     for f in changed_files:
