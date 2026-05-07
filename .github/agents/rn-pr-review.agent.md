@@ -1,5 +1,5 @@
 ---
-name: "Agent PR Review"
+name: "RN PR Review"
 description: "Use when: reviewing a React Native pull request, checking RN code quality, auditing PR for lint violations, test coverage gaps, RN-specific logic issues, bridge calls, thread safety, FlatList misuse, unnecessary re-renders, or missing useEffect cleanup. Produces a structured review with risk level and merge recommendation."
 model: Claude Sonnet 4.6 (copilot)
 tools: [read, search, todo]
