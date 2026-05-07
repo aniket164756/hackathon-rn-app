@@ -174,7 +174,7 @@ def main():
                 {"role": "user", "content": user_message},
             ],
             temperature=0.2,
-            max_tokens=4096,
+            max_completion_tokens=4096,
         )
     except Exception as exc:
         message = str(exc)
