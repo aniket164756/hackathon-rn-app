@@ -3,13 +3,14 @@
 custom-agent-runner.py
 
 Runs the RN PR Review agent against a GitHub Pull Request using the
-GitHub Models API and posts the structured review as a PR comment.
+OpenAI API and posts the structured review as a PR comment.
 
 Required env vars:
   GITHUB_TOKEN       - Automatically provided by GitHub Actions
                        (needs pull-requests: write, contents: read)
   GITHUB_REPOSITORY  - e.g. "owner/repo" (auto-set by Actions)
   PR_NUMBER          - Pull request number (from github.event.pull_request.number)
+  OPENAI_API_KEY     - OpenAI API key (add as a GitHub repo secret)
 """
 
 import os
@@ -25,8 +26,18 @@ GITHUB_REPOSITORY = os.environ["GITHUB_REPOSITORY"]
 PR_NUMBER = int(os.environ["PR_NUMBER"])
 
 GITHUB_API = "https://api.github.com"
-MODELS_ENDPOINT = "https://models.inference.ai.azure.com"
-MODEL = "gpt-4o"
+MODEL = "gpt-5-mini"
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+
+if not OPENAI_API_KEY:
+    print(
+        "[error] OPENAI_API_KEY is not set.\n"
+        "Add it as a GitHub repo secret:\n"
+        "  GitHub repo → Settings → Secrets and variables → Actions → New repository secret\n"
+        "  Name: OPENAI_API_KEY  Value: sk-...",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 
 HEADERS = {
     "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -43,7 +54,8 @@ SOURCE_EXTENSIONS = {".ts", ".tsx", ".js", ".jsx"}
 # ── GitHub API helpers ────────────────────────────────────────────────────────
 
 def gh_get(path, params=None):
-    response = requests.get(f"{GITHUB_API}{path}", headers=HEADERS, params=params)
+    url = f"{GITHUB_API}{path}"
+    response = requests.get(url, headers=HEADERS, params=params)
     response.raise_for_status()
     return response.json()
 
@@ -113,7 +125,6 @@ def build_system_prompt():
         or read_local("eslint.config.js")
         or ""
     )
-
     return "\n\n---\n\n".join(filter(bool, [
         strip_frontmatter(agent_md),
         f"## File Structure Conventions\n{strip_frontmatter(file_structure)}",
@@ -145,7 +156,6 @@ def main():
     changed_files = get_pr_changed_files(owner, repo, PR_NUMBER)
 
     if not changed_files:
-        print("No source files changed — skipping review.")
         gh_post_comment(
             owner, repo, PR_NUMBER,
             "**RN PR Review**: No TypeScript/JavaScript source files changed. Nothing to review.",
@@ -155,26 +165,23 @@ def main():
     system_prompt = build_system_prompt()
     user_message = build_user_message(changed_files, owner, repo, head_sha)
 
-    client = OpenAI(base_url=MODELS_ENDPOINT, api_key=GITHUB_TOKEN)
-
-    print(f"Reviewing {len(changed_files)} file(s) via {MODEL}...")
+    client = OpenAI(api_key=OPENAI_API_KEY)
     completion = client.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ],
-        temperature=0.2,
-        max_tokens=4096,
-    )
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
+            max_completion_tokens=4096,
+        )
 
     review = completion.choices[0].message.content
     gh_post_comment(owner, repo, PR_NUMBER, f"## 🤖 RN PR Review\n\n{review}")
-    print("Review posted successfully.")
 
 
 if __name__ == "__main__":
     try:
         main()
-    except KeyboardInterrupt:
+    except Exception as exc:
+        print(f"[error] {type(exc).__name__}: {exc}", file=sys.stderr)
         sys.exit(1)

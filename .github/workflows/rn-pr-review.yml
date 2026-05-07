@@ -10,8 +10,9 @@ permissions:
 
 jobs:
   rn-pr-review:
-    name: RN PR Review Agent
+    name: PR Review Agent
     runs-on: ubuntu-latest
+    environment: prod
 
     steps:
       - name: Checkout repository
@@ -28,6 +29,7 @@ jobs:
       - name: Run RN PR Review agent
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: python .github/scripts/custom-agent-runner.py
