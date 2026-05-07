@@ -76,7 +76,7 @@ def delete_previous_review_comment(owner, repo, pr_number):
     for comment in comments:
         if (
             comment.get("user", {}).get("login") == "github-actions[bot]"
-            and comment.get("body", "").startswith("## 🤖 RN PR Review")
+            and comment.get("body", "").startswith("## RN PR Review")
         ):
             requests.delete(
                 f"{GITHUB_API}/repos/{owner}/{repo}/issues/comments/{comment['id']}",
@@ -200,7 +200,7 @@ def main():
     # Replace any single newline that is not already preceded/followed by another newline.
     review = re.sub(r'(?<!\n)\n(?!\n)', '\n\n', review)
     delete_previous_review_comment(owner, repo, PR_NUMBER)
-    gh_post_comment(owner, repo, PR_NUMBER, f"## 🤖 RN PR Review\n\n{review}")
+    gh_post_comment(owner, repo, PR_NUMBER, f"## RN PR Review\n\n{review}")
 
 
 if __name__ == "__main__":
