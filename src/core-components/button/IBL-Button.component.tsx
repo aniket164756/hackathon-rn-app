@@ -3,8 +3,8 @@ import { Text, TouchableOpacity } from 'react-native';
 import styles from './IBL-Button.style';
 
 interface IProps {
-  buttonText: string;
-  onPress: () => void;
+  buttonText: any;
+  onPress: () => any;
 }
 
 const IBLButton = (props: IProps) => {
