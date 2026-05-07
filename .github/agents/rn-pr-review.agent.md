@@ -80,6 +80,5 @@ Output four sections in order:
 1. **Overall Risk Level** — table with counts of 🔴/🟡/🟢 issues, lint violations, coverage gaps, and an **Overall Risk** row. Risk logic: any 🔴 → Overall 🔴; two or more 🟡 with no 🔴 → Overall 🟡; otherwise 🟢.
 2. **Merge Recommendation** — `HOLD`, `MERGE WITH FIXES`, or `APPROVE` with one sentence rationale.
 3. **Top 5 Action Items** — table with columns: Priority, File, Issue, Step.
-4. **Detailed Findings** — Step 1, 2, 3 output each in a collapsible `<details>` block.
 
 
