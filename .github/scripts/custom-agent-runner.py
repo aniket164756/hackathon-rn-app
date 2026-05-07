@@ -3,12 +3,11 @@
 custom-agent-runner.py
 
 Runs the RN PR Review agent against a GitHub Pull Request using the
-OpenAI API and posts the structured review as a PR comment.
+GitHub Models API and posts the structured review as a PR comment.
 
 Required env vars:
   GITHUB_TOKEN       - Automatically provided by GitHub Actions
                        (needs pull-requests: write, contents: read)
-  OPENAI_API_KEY     - OpenAI API key (stored as repo secret)
   GITHUB_REPOSITORY  - e.g. "owner/repo" (auto-set by Actions)
   PR_NUMBER          - Pull request number (from github.event.pull_request.number)
 """
@@ -22,12 +21,13 @@ from openai import OpenAI
 # ── Config ────────────────────────────────────────────────────────────────────
 
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
-OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 GITHUB_REPOSITORY = os.environ["GITHUB_REPOSITORY"]
 PR_NUMBER = int(os.environ["PR_NUMBER"])
 
 GITHUB_API = "https://api.github.com"
+MODELS_ENDPOINT = "https://models.inference.ai.azure.com"
 MODEL = "gpt-4o"
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 HEADERS = {
     "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -156,19 +156,32 @@ def main():
     system_prompt = build_system_prompt()
     user_message = build_user_message(changed_files, owner, repo, head_sha)
 
-    # OPENAI_API_KEY stored as a GitHub Actions secret
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    # Prefer explicit OpenAI credentials when provided; otherwise use GitHub Models.
+    if OPENAI_API_KEY:
+        client = OpenAI(api_key=OPENAI_API_KEY)
+    else:
+        client = OpenAI(base_url=MODELS_ENDPOINT, api_key=GITHUB_TOKEN)
 
     print(f"Reviewing {len(changed_files)} file(s) via {MODEL}...")
-    completion = client.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ],
-        temperature=0.2,
-        max_tokens=4096,
-    )
+    try:
+        completion = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
+            temperature=0.2,
+            max_tokens=4096,
+        )
+    except Exception as exc:
+        message = str(exc)
+        if "models permission is required" in message.lower():
+            raise RuntimeError(
+                "GitHub Models request failed: token is missing `models` permission. "
+                "Add `permissions: models: read` to the workflow, or set OPENAI_API_KEY "
+                "to use OpenAI directly."
+            ) from exc
+        raise
 
     review = completion.choices[0].message.content
     gh_post_comment(owner, repo, PR_NUMBER, f"## 🤖 RN PR Review\n\n{review}")
