@@ -3,13 +3,14 @@
 custom-agent-runner.py
 
 Runs the RN PR Review agent against a GitHub Pull Request using the
-GitHub Models API and posts the structured review as a PR comment.
+OpenAI API and posts the structured review as a PR comment.
 
 Required env vars:
   GITHUB_TOKEN       - Automatically provided by GitHub Actions
                        (needs pull-requests: write, contents: read)
   GITHUB_REPOSITORY  - e.g. "owner/repo" (auto-set by Actions)
   PR_NUMBER          - Pull request number (from github.event.pull_request.number)
+  OPENAI_API_KEY     - OpenAI API key (add as a GitHub repo secret)
 """
 
 import os
@@ -25,12 +26,21 @@ GITHUB_REPOSITORY = os.environ["GITHUB_REPOSITORY"]
 PR_NUMBER = int(os.environ["PR_NUMBER"])
 
 GITHUB_API = "https://api.github.com"
-MODELS_ENDPOINT = "https://models.inference.ai.azure.com"
 MODEL = "gpt-4o"
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
+if not OPENAI_API_KEY:
+    print(
+        "[error] OPENAI_API_KEY is not set.\n"
+        "Add it as a GitHub repo secret:\n"
+        "  GitHub repo → Settings → Secrets and variables → Actions → New repository secret\n"
+        "  Name: OPENAI_API_KEY  Value: sk-...",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
 print(f"[config] repository={GITHUB_REPOSITORY} pr={PR_NUMBER} model={MODEL}")
-print(f"[config] OPENAI_API_KEY present={bool(OPENAI_API_KEY)}")
+print(f"[config] OPENAI_API_KEY present=True (length={len(OPENAI_API_KEY)})")
 print(f"[config] GITHUB_TOKEN present={bool(GITHUB_TOKEN)}")
 
 HEADERS = {
@@ -180,14 +190,7 @@ def main():
     system_prompt = build_system_prompt()
     user_message = build_user_message(changed_files, owner, repo, head_sha)
 
-    # Prefer explicit OpenAI credentials when provided; otherwise use GitHub Models.
-    if OPENAI_API_KEY:
-        print("[main] using OpenAI API")
-        client = OpenAI(api_key=OPENAI_API_KEY)
-    else:
-        print("[main] OPENAI_API_KEY not set — falling back to GitHub Models endpoint")
-        client = OpenAI(base_url=MODELS_ENDPOINT, api_key=GITHUB_TOKEN)
-
+    client = OpenAI(api_key=OPENAI_API_KEY)
     print(f"[main] sending request to model={MODEL}...")
     try:
         completion = client.chat.completions.create(
