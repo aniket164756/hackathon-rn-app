@@ -73,11 +73,9 @@ List each issue as: **file**, **line range**, **category**, **description**, **s
 
 ### Step 4 — Summary
 
-**Goal**: Give the reviewer a single-screen decision dashboard.
+**Goal**: Compile the findings from Steps 1–3 and post the full review as a GitHub PR comment using the `github_repo` tool.
 
-Your entire response must contain ONLY this Summary. Do not include pillar details, code snippets, suggestions on how to fix findings, or any tables as a GitHub PR comment using the `github_repo` tool.
-
-Output the following three sections in order:
+The comment must contain the following three sections in order:
 
 1. **Overall Risk Level** — a labelled list using this exact format:
    - 🔴 High: `<count>`
@@ -89,6 +87,6 @@ Output the following three sections in order:
 
 2. **Merge Recommendation** — one of `HOLD`, `MERGE WITH FIXES`, or `APPROVE` followed by one sentence rationale.
 
-3. **Detailed Findings** — Step 1, 2, 3 output each in a collapsible `<details>` block.
+3. **Detailed Findings** — Step 1, 2, and 3 output each in a collapsible `<details>` block with a descriptive `<summary>` label.
 
 
