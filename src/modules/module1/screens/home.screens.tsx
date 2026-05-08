@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { IBLButton, IBLText } from '../../../core-components';
 import styles from '../styles/home.styles';
@@ -9,13 +9,14 @@ interface IProps {
 }
 
 const HomeScreen = (props: IProps) => {
+  const onButtonPress = useCallback(() => {
+    props.navigation?.navigate('About');
+  }, [props.navigation]);
+
   return (
     <View style={styles.container}>
       <IBLText displayText="This is Module 1 home screen" />
-      <IBLButton
-        buttonText="About"
-        onPress={() => props.navigation?.navigate('About')}
-      />
+      <IBLButton buttonText="About" onPress={onButtonPress} />
     </View>
   );
 };

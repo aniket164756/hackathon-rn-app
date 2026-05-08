@@ -3,7 +3,7 @@ import { Text } from 'react-native';
 import styles from './IBL-Text.style';
 
 interface IProps {
-  displayText: any;
+  displayText: string;
 }
 
 const IBLText = (props: IProps) => {
