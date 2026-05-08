@@ -27,7 +27,7 @@ GITHUB_REPOSITORY = os.environ["GITHUB_REPOSITORY"]
 PR_NUMBER = int(os.environ["PR_NUMBER"])
 
 GITHUB_API = "https://api.github.com"
-MODEL = "gpt-5-mini"
+MODEL = "gpt-4o"
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 if not OPENAI_API_KEY:
@@ -150,8 +150,9 @@ def build_system_prompt():
 
 def build_user_message(changed_files, owner, repo, head_sha):
     lines = [
-        "**Output rule**: Respond with ONLY the Step 4 Summary section. "
-        "Do not include pillar details, inline findings, code snippets, or fix suggestions. "
+        "**Output rule**: Respond with the full Step 4 Summary. "
+        "Include all three sections: Overall Risk Level, Merge Recommendation, and Detailed Findings. "
+        "Wrap each Detailed Findings pillar in a collapsible <details> block with a descriptive <summary> label. "
         "Use proper GitHub Flavored Markdown with a blank line between every heading, paragraph, and table.\n",
         f"Review the following {len(changed_files)} changed file(s):\n",
     ]
