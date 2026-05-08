@@ -66,7 +66,6 @@ Apply all rules from `rn-code-quality.instructions.md` plus these deeper RN-runt
 | **Bridge / Native calls** | Sync native module calls on JS thread; missing `.catch()` on `NativeModules.*` / `NativeEventEmitter`; unguarded `Platform.select` with missing platform branches |
 | **Thread safety** | State mutations inside `setTimeout` / `setInterval` after unmount; missing `InteractionManager.runAfterInteractions` for heavy work |
 | **Navigation** | `navigation.navigate` without type-safe route params; missing `useFocusEffect` cleanup; listeners in `useEffect` without removal |
-| **Accessibility** | Interactive elements missing `accessibilityLabel` or `accessibilityRole` |
 
 List each issue as: **file**, **line range**, **category**, **description**, **severity** (🔴 High / 🟡 Medium / 🟢 Low).
 
