@@ -87,6 +87,6 @@ The comment must contain the following three sections in order:
 
 2. **Merge Recommendation** — one of `HOLD`, `MERGE WITH FIXES`, or `APPROVE` followed by one sentence rationale.
 
-3. **Detailed Findings** — Step 1, 2, and 3 output each in a collapsible `<details>` block with a descriptive `<summary>` label.
+3. **Detailed Findings** — Output each in a collapsible `<details>` block with a descriptive `<summary>` label.
 
 
