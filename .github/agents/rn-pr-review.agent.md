@@ -37,7 +37,6 @@ Work through the following four pillars in order. Use the `todo` tool to track p
    - Flag disabled eslint rules (`eslint-disable`) without a justification comment.
    - Note inconsistent naming conventions (PascalCase components, camelCase hooks, `use` prefix on custom hooks, etc.).
    - Cross-check against all rules in `rn-code-quality.instructions.md` that apply to the changed file type.
-5. List each violation with: **file**, **line range**, **rule violated**, **suggested fix**.
 
 ---
 
@@ -51,7 +50,6 @@ Work through the following four pillars in order. Use the `todo` tool to track p
    - Identify missing edge cases: null/undefined props, empty arrays, error states, loading states.
    - Flag branches (`if`/`else`, ternaries, `&&` short-circuits, `switch` cases) that have no corresponding test assertion.
    - Flag async functions that lack error-path tests.
-3. Report each gap as: **symbol**, **file**, **missing scenario**, **suggested test description**.
 
 ---
 
