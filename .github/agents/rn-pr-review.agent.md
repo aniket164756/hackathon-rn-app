@@ -75,16 +75,8 @@ List each issue as: **file**, **line range**, **category**, **description**, **s
 
 The comment must contain the following three sections in order:
 
-1. **Overall Risk Level** — a labelled list using this exact format:
-   - 🔴 High: `<count>`
-   - 🟡 Medium: `<count>`
-   - 🟢 Low: `<count>`
-   - Lint Violations: `<count>`
-   - Coverage Gaps: `<count>`
-   - **Overall Risk**: 🔴 / 🟡 / 🟢 (any 🔴 → Overall 🔴; two or more 🟡 with no 🔴 → Overall 🟡; otherwise 🟢)
+1. **Merge Recommendation** — one of `HOLD`, `MERGE WITH FIXES`, or `APPROVE` followed by one sentence rationale.
 
-2. **Merge Recommendation** — one of `HOLD`, `MERGE WITH FIXES`, or `APPROVE` followed by one sentence rationale.
-
-3. **Detailed Findings** — Output each in a collapsible `<details>` block with a descriptive `<summary>` label.
+2. **Detailed Findings** — Output each in a collapsible `<details>` block with a descriptive `<summary>` label.
 
 
