@@ -63,7 +63,6 @@ const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: PALETT
 
 | Rule | Severity |
 |---|---|
-| No `any` type — use `unknown` + type guards or precise types | Critical |
 | Prefer `interface` over `type` for object shapes | Low |
 | Non-null assertion `!` must have an explanatory comment | High |
 | No duplicate variable declarations or variable shadowing | Critical |
