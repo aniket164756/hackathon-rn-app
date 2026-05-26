@@ -233,14 +233,6 @@ def build_review_body(data):
     rec = data.get("merge_recommendation", "APPROVE")
     lines = [
         "## RN PR Review\n",
-        "### Overall Risk Level\n",
-        f"- 🔴 High: `{rc.get('high', 0)}`",
-        f"- 🟡 Medium: `{rc.get('medium', 0)}`",
-        f"- 🟢 Low: `{rc.get('low', 0)}`",
-        f"- Lint Violations: `{rc.get('lint_violations', 0)}`",
-        f"- Coverage Gaps: `{rc.get('coverage_gaps', 0)}`",
-        f"- **Overall Risk**: {_RISK_EMOJI.get(overall, '🟢')}",
-        "",
         f"### Merge Recommendation\n**{_REC_LABEL.get(rec, rec)}** — {data.get('rationale', '')}",
         "",
         "### Detailed Findings",

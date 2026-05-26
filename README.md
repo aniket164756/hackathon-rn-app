@@ -102,21 +102,11 @@ To re-trigger on an existing PR without a new commit, close and reopen the PR.
 
 ## Review Output Format
 
-The bot comment always contains three sections:
+The bot comment always contains two sections:
 
-**1. Overall Risk Level**
-```
-🔴 High: 2
-🟡 Medium: 1
-🟢 Low: 3
-Lint Violations: 4
-Coverage Gaps: 2
-Overall Risk: 🔴
-```
+**1. Merge Recommendation** — `HOLD`, `MERGE WITH FIXES`, or `APPROVE` with a one-sentence rationale.
 
-**2. Merge Recommendation** — `HOLD`, `MERGE WITH FIXES`, or `APPROVE` with a one-sentence rationale.
-
-**3. Detailed Findings** — each pillar (Standard, Coverage, Logic) in a collapsible `<details>` block, with file, line range, category, description, and severity for every finding.
+**2. Detailed Findings** — each pillar (Standard, Coverage, Logic) in a collapsible `<details>` block, with file, line range, category, description, and severity for every finding.
 
 ---
 
