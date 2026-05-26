@@ -1,27 +1,27 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { IBLButton, IBLText } from '../../../core-components';
-import styles from '../styles/home.styles';
+import styles from '../styles/about.style';
 import { NavigationProp, ParamListBase } from '@react-navigation/core';
 
 interface IProps {
   navigation?: NavigationProp<ParamListBase>;
 }
 
-const HomeScreen = (props: IProps) => {
+const AboutScreen = (props: IProps) => {
   const onButtonPress = useCallback(() => {
-    props.navigation?.navigate('About');
+    props.navigation?.navigate('Module1', { screen: 'Home' });
   }, [props.navigation]);
   
   return (
     <View style={styles.container}>
-      <IBLText displayText="This is Module 2 home screen" />
+      <IBLText displayText="This is Module 2 about screen" />
       <IBLButton
-        buttonText="About"
+        buttonText="Module 1 Home"
         onPress={onButtonPress}
       />
     </View>
   );
 };
 
-export default HomeScreen;
+export default AboutScreen;
