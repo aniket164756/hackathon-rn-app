@@ -27,7 +27,7 @@ Module folder names are lowercase kebab-case.
 | `navigations/` | `.navigation.tsx` | Every screen in `screens/` must be registered here |
 | `screens/` | `.screen.tsx` | One file per screen |
 | `styles/` | `.style.ts` | One per screen, name must match screen (e.g. `home.style.ts` for `home.screen.tsx`) |
-| `utils/` | `.util.ts` | Module-specific shared functions |
+| `utils/` | `.utils.ts` | Module-specific shared functions |
 
 ## Summary Table
 
@@ -39,4 +39,4 @@ Module folder names are lowercase kebab-case.
 | `modules/<name>/navigations/` | lowercase-kebab | `.navigation.tsx` |
 | `modules/<name>/screens/` | lowercase-kebab | `.screen.tsx` |
 | `modules/<name>/styles/` | lowercase-kebab | `.style.ts` |
-| `modules/<name>/utils/` | lowercase-kebab | `.util.ts` |
+| `modules/<name>/utils/` | lowercase-kebab | `.utils.ts` |

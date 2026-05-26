@@ -1,97 +1,189 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# RN PR Review Assistant
 
-# Getting Started
+An AI-powered pull request review assistant built for React Native that delivers intelligent, context-aware code review insights automatically — every time a PR is raised.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## What It Does
 
-## Step 1: Start Metro
+Every time a pull request is opened, updated, or reopened against this repository, a GitHub Actions workflow triggers automatically. It sends the PR diff, along with the project's coding standards, to an AI model. The model performs a structured four-pillar review — **Standard**, **Coverage**, **Logic**, and **Summary** — and posts the result as a comment directly on the PR.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+The review covers:
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- **Code standards** — file naming conventions, TypeScript rules, ESLint compliance, import ordering
+- **Test coverage** — missing test files, untested branches, async error paths
+- **React Native–specific logic** — FlatList misuse, `useEffect` cleanup, bridge/native call safety, type-safe navigation
+- **Risk level and merge recommendation** — `APPROVE`, `MERGE WITH FIXES`, or `HOLD` with a rationale
+
+---
+
+## Architecture
+
+The system is built in three layers that reference each other:
+
+```
+.github/
+├── agents/
+│   └── rn-pr-review.agent.md            ← Custom Copilot agent (VS Code)
+├── instructions/
+│   ├── file-structure.instructions.md   ← File naming & placement rules
+│   └── rn-code-quality.instructions.md  ← RN, TS, styling & testing rules
+├── scripts/
+│   └── custom-agent-runner.py           ← Orchestration script (CI)
+└── workflows/
+    └── rn-pr-review.yml                 ← GitHub Actions workflow
+```
+
+### How It Flows
+
+```
+PR opened / updated
+       │
+       ▼
+GitHub Actions (rn-pr-review.yml)
+       │  sets env: GITHUB_TOKEN, OPENAI_API_KEY, PR_NUMBER
+       ▼
+custom-agent-runner.py
+       │  1. Fetches PR changed files via GitHub API
+       │  2. Loads agent.md + both instruction files → system prompt
+       │  3. Attaches file contents → user message
+       │  4. Calls OpenAI API (gpt-4o)
+       ▼
+AI Review (four-pillar structured output)
+       │
+       ▼
+Posted as PR comment (replaces any previous bot comment)
+```
+
+---
+
+## Setup
+
+### 1. Add the `OPENAI_API_KEY` secret
+
+The workflow requires an OpenAI API key to call `gpt-4o`.
+
+1. Go to your GitHub repository → **Settings** → **Secrets and variables** → **Actions**
+2. Click **New repository secret**
+3. Name: `OPENAI_API_KEY`
+4. Value: your OpenAI API key (`sk-...`)
+
+The `GITHUB_TOKEN` secret is provided automatically by GitHub Actions — no configuration needed.
+
+### 2. Create the `prod` environment (optional but recommended)
+
+The workflow runs in an environment named `prod`, which lets you add environment-level protection rules (e.g. require a reviewer before the AI posts).
+
+1. Go to **Settings** → **Environments** → **New environment**
+2. Name it `prod`
+3. Add any required reviewers or branch restrictions as needed
+
+If you skip this step, remove the `environment: prod` line from `.github/workflows/rn-pr-review.yml`.
+
+### 3. Ensure workflow permissions
+
+The workflow needs `pull-requests: write` to post comments. This is already declared in the workflow file. Verify your repository's **Actions** → **General** → **Workflow permissions** allows read and write permissions, or that the explicit `permissions` block in the workflow is respected.
+
+---
+
+## Triggering a Review
+
+The workflow triggers automatically on:
+
+```yaml
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+```
+
+No manual steps are needed. Open a PR targeting any branch and the bot comment will appear within a minute or two.
+
+To re-trigger on an existing PR without a new commit, close and reopen the PR.
+
+---
+
+## Review Output Format
+
+The bot comment always contains three sections:
+
+**1. Overall Risk Level**
+```
+🔴 High: 2
+🟡 Medium: 1
+🟢 Low: 3
+Lint Violations: 4
+Coverage Gaps: 2
+Overall Risk: 🔴
+```
+
+**2. Merge Recommendation** — `HOLD`, `MERGE WITH FIXES`, or `APPROVE` with a one-sentence rationale.
+
+**3. Detailed Findings** — each pillar (Standard, Coverage, Logic) in a collapsible `<details>` block, with file, line range, category, description, and severity for every finding.
+
+---
+
+## VS Code Agent (Local Use)
+
+The custom agent `.github/agents/rn-pr-review.agent.md` can also be invoked directly inside VS Code Copilot Chat using the `@RN PR Review` agent. It follows the same four-pillar review process and references the same instruction files, but runs interactively in your editor rather than in CI.
+
+---
+
+## Project Structure
+
+```
+src/
+├── core-components/       # Shared UI components (IBL-*.component.tsx)
+├── core-constants/        # Design tokens, palette (*.constant.ts)
+├── core-navigations/      # Root navigation (*.navigation.tsx)
+└── modules/
+    ├── module1/           # Feature module
+    │   ├── navigations/
+    │   ├── screens/       # *.screen.tsx
+    │   ├── styles/        # *.style.ts
+    │   └── utils/         # *.utils.ts
+    └── module2/
+```
+
+Naming and placement rules are enforced by `.github/instructions/file-structure.instructions.md`.
+
+---
+
+## Running the App Locally
+
+> Ensure your environment is set up per the [React Native environment guide](https://reactnative.dev/docs/set-up-your-environment).
 
 ```sh
-# Using npm
+# Install dependencies
+npm install
+
+# iOS — install CocoaPods (first time or after native dep changes)
+bundle install && bundle exec pod install
+
+# Start Metro bundler
 npm start
 
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
+# Run on Android
 npm run android
 
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+# Run on iOS
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+---
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Running Tests
 
-## Step 3: Modify your app
+```sh
+npm test
+```
 
-Now that you have successfully run the app, let's make changes!
+Tests are co-located with source files following the convention `IBL-<Name>.test.tsx` for components and `*.test.ts` for utilities.
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+---
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+## Coding Standards
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+| Convention file | Covers |
+|---|---|
+| `.github/instructions/file-structure.instructions.md` | File naming, extensions, folder placement |
+| `.github/instructions/rn-code-quality.instructions.md` | React Native patterns, TypeScript, styling, testing, error handling |
 
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+These files are the authoritative source for both the AI reviewer and human developers.

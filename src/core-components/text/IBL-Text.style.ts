@@ -1,10 +1,10 @@
-import { StyleSheet } from "react-native";
-import PALETTE from "../../core-constants/palette.constant";
+import { StyleSheet } from 'react-native';
+import PALETTE from '../../core-constants/palette.constant';
 
 const styles = StyleSheet.create({
-    textColor: {
-        color: PALETTE.red,
-    }
-})
+  textColor: {
+    color: PALETTE.text,
+  },
+});
 
 export default styles;
