@@ -233,8 +233,6 @@ def build_review_body(data):
     rec = data.get("merge_recommendation", "APPROVE")
     lines = [
         "## RN PR Review\n",
-        f"### Merge Recommendation\n**{_REC_LABEL.get(rec, rec)}** — {data.get('rationale', '')}",
-        "",
         "### Detailed Findings",
         "",
         "<details><summary>Step 1 — Standard</summary>\n",
