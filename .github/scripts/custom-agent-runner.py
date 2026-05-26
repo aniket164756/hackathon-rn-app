@@ -176,14 +176,6 @@ Output ONLY a valid JSON object — no markdown fences, no prose before or after
 
 Schema:
 {
-  "overall_risk": "HIGH" | "MEDIUM" | "LOW",
-  "risk_counts": {
-    "high": <int>,
-    "medium": <int>,
-    "low": <int>,
-    "lint_violations": <int>,
-    "coverage_gaps": <int>
-  },
   "merge_recommendation": "HOLD" | "MERGE WITH FIXES" | "APPROVE",
   "rationale": "<one sentence>",
   "standard_summary": "<markdown summary of Step 1 findings>",
